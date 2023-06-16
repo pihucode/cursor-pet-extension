@@ -1,0 +1,30 @@
+{
+    "manifest_version": 3,
+    "name": "Cursor Pet",
+    "version": "1.0",
+    "description": "Cursor pet extension",
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ],
+    "action": {
+        "default_popup": ""
+    },
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "pet.png",
+                "chibi_paimon_cautious.png"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
+}
