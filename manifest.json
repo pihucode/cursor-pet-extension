@@ -19,6 +19,7 @@
     "web_accessible_resources": [
         {
             "resources": [
+                "cursorPet.css",
                 "pet.png",
                 "chibi_paimon_cautious.png"
             ],

@@ -13,8 +13,8 @@ const PAGE_CENTER_Y = window.innerHeight / 2;
 
 const PADDING = 50;
 
-const CIRCLING_IDLE_TIME = 8000; // 8 seconds of idle time before starting circular motion
-const FADE_AWAY_THRESHOLD_TIME = CIRCLING_IDLE_TIME + 5000; // 5 seconds of idle time before fading away
+const MOUSE_IDLE_TIME = 8000; // 8 seconds of idle time before starting circular motion
+const CIRCLING_TIME = MOUSE_IDLE_TIME + 6000; // 5 seconds of idle time before fading away
 
 let targetX = PAGE_CENTER_X; // Target X position of image
 let targetY = PAGE_CENTER_Y; // Target Y position of image
@@ -38,12 +38,14 @@ document.addEventListener('mousemove', (e) => {
     flipImage();
 
     stopCircularMotion();
+    // stopSimpleFloatingMotion();
 
     // if mouse is idle for some time, start circling
     clearTimeout(circlingIdleTimeout);
     circlingIdleTimeout = setTimeout(() => {
         startCircularMotion(e.clientX, e.clientY);
-    }, CIRCLING_IDLE_TIME);
+        // startSimpleFloatingMotion();
+    }, MOUSE_IDLE_TIME);
 
     // if mouse is idle for some time, fade away
     if (cursorPetImage.style.opacity !== 1) {
@@ -52,8 +54,7 @@ document.addEventListener('mousemove', (e) => {
     clearTimeout(fadeAwayIdleTimeout);
     fadeAwayIdleTimeout = setTimeout(() => {
         cursorPetImage.style.opacity = 0;
-    }, FADE_AWAY_THRESHOLD_TIME);
-
+    }, CIRCLING_TIME);
 
     // if (!isCircling && Math.random() < 0.01) {
     // startCircularMotion(e.clientX, e.clientY);
@@ -173,6 +174,21 @@ function stopFloatMotion() {
 
 // Start the float motion initially
 // floatTimeoutId = setTimeout(startFloatMotion, MOUSE_IDLE_TIME);
+
+// ================== SIMPLE FLOATING ANIMATION =========================
+function startSimpleFloatingMotion() {
+    console.log('add floating class');
+    cursorPetImage.className = 'cursor-pet cursor-pet__floating';
+    // cursorPetImage.classList.add('cursor-pet__floating');
+}
+
+function stopSimpleFloatingMotion() {
+    // console.log('remove floating class');
+    cursorPetImage.classList.remove('cursor-pet__floating');
+}
+
+
+// ================== CLICK =========================
 
 // ================== OTHER =========================
 
