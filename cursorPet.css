@@ -1,7 +1,3 @@
-#container {
-    position: absolute;
-}
-
 .cursor-pet__floating {
     background-color: greenyellow;
     animation-name: floating__animation;

@@ -8,6 +8,8 @@ cursorPetImage.style.zIndex = 9999;
 cursorPetImage.style.transform = 'scaleX(-1)';
 cursorPetImage.style.transition = 'opacity 2.5s ease-in-out';
 
+cursorPetImage.classList.add('cursor-pet__floating');
+
 const PAGE_CENTER_X = window.innerWidth / 2;
 const PAGE_CENTER_Y = window.innerHeight / 2;
 
