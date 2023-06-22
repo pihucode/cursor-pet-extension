@@ -1,23 +1,12 @@
-// chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-//     if (changeInfo.status === 'complete') {
-//         chrome.scripting.executeScript({
-//             target: { tabId: tabId },
-//             files: ["content.js"]
-//         });
-//     }
-// });
-
+const injectedTabs = [];
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.status === 'complete') {
-        chrome.scripting.insertCSS({
-            target: { tabId: tabId },
-            files: ["cursorPet.css"]
+    if (changeInfo.status === 'complete' && !injectedTabs.includes(tabId)) {
+        chrome.tabs.executeScript(tabId, {
+            file: "content.js",
+            allFrames: false  // Inject only into the top-level frame
         }, () => {
-            chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                files: ["content.js"]
-            });
+            injectedTabs.push(tabId);
         });
     }
 });
