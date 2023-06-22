@@ -8,8 +8,6 @@ cursorPetImage.style.zIndex = 9999;
 cursorPetImage.style.transform = 'scaleX(-1)';
 cursorPetImage.style.transition = 'opacity 2.5s ease-in-out';
 
-cursorPetImage.classList.add('cursor-pet__floating');
-
 const PAGE_CENTER_X = window.innerWidth / 2;
 const PAGE_CENTER_Y = window.innerHeight / 2;
 
@@ -37,10 +35,9 @@ document.addEventListener('mousemove', (e) => {
     targetX = mousePosX - cursorPetImage.width / 2 + PADDING;
     targetY = mousePosY - cursorPetImage.height / 2 - PADDING;
 
-    flipImage();
+    handleImageOrientation(); // flips the image horizontally depending on mouse position
 
     stopCircularMotion();
-    // stopSimpleFloatingMotion();
 
     // if mouse is idle for some time, start circling
     clearTimeout(circlingIdleTimeout);
@@ -64,7 +61,7 @@ document.addEventListener('mousemove', (e) => {
 });
 
 //helper method to flip image horizontally depending on mouse position
-function flipImage() {
+function handleImageOrientation() {
     const imgLeft = parseFloat(cursorPetImage.style.left) || 0;
     let imageCenterX = imgLeft + cursorPetImage.width / 2;
     let scale = -1;
@@ -135,14 +132,11 @@ function stopCircularMotion() {
     isCircling = false;
 }
 
-// Example usage:
-// To start circular motion: startCircularMotion(mouseX, mouseY);
-// To stop circular motion: stopCircularMotion();
-
-
 // ================== FLOATING MOTION =========================
 const FLOAT_AMPLITUDE = 10; // Amplitude of the float motion
 const FLOAT_PERIOD = 2000; // Period of the float motion in milliseconds
+const FLOAT_FREQUENCY = 1 / 400;
+const FLOAT_DELTA_TIME = 32;
 
 let isFloating = false;
 // let floatTimeoutId;
@@ -179,16 +173,16 @@ function stopFloatMotion() {
 
 // ================== SIMPLE FLOATING ANIMATION =========================
 function startSimpleFloatingMotion() {
-    console.log('add floating class');
-    cursorPetImage.className = 'cursor-pet cursor-pet__floating';
-    // cursorPetImage.classList.add('cursor-pet__floating');
+    // Calculate the vertical offset using the sine function
+    const offsetY = FLOAT_AMPLITUDE * Math.sin(FLOAT_FREQUENCY * Date.now());
+    // object.posY += offsetY;    
+    let currPosY = parseFloat(cursorPetImage.style.top) || 0;
+    let newPosY = currPosY += offsetY;
+    cursorPetImage.style.top = newPosY + 'px';
+    // Schedule the next update using the deltaTime
+    setTimeout(() => startSimpleFloatingMotion(), FLOAT_DELTA_TIME);
 }
-
-function stopSimpleFloatingMotion() {
-    // console.log('remove floating class');
-    cursorPetImage.classList.remove('cursor-pet__floating');
-}
-
+// startSimpleFloatingMotion();
 
 // ================== CLICK =========================
 
