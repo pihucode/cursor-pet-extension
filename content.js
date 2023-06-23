@@ -118,7 +118,7 @@ function startCircularMotion(mouseX, mouseY) {
         cursorPetImage.style.left = x - cursorPetImage.width / 2 + 'px';
         cursorPetImage.style.top = y - cursorPetImage.height / 2 + 'px';
 
-        flipImage();
+        handleImageOrientation();
 
         if (isCircling) {
             requestAnimationFrame(animateCircularMotion);
