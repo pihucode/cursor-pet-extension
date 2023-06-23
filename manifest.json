@@ -1,9 +1,8 @@
 {
     "manifest_version": 3,
     "name": "Cursor Pet",
-    "version": "1.0",
-    "description": "Cursor pet extension",
-    "permissions": [],
+    "version": "1.0.0",
+    "description": "A cute little pet that follows your cursor.",
     "action": {
         "default_popup": ""
     },
