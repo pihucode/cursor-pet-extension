@@ -27,6 +27,30 @@ let circlingIdleTimeout = null;
 
 let fadeAwayIdleTimeout = null;
 
+// fetch image url from local storage
+function fetchImageUrl() {
+    chrome.storage.local.get("customPetImageUrl", function (data) {
+        if (data.customPetImageUrl) {
+            console.log(data.customPetImageUrl);
+            cursorPetImage.src = data.customPetImageUrl;
+            console.log('image url set successfully in content.js');
+        } else {
+            cursorPetImage.src = chrome.runtime.getURL('chibi_paimon_cautious.png');
+            console.log('INVALID data.customPetImageUrl');
+        }
+    });
+}
+fetchImageUrl();
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    if (request.imageDataUrl) {
+        cursorPetImage.src = request.imageDataUrl;
+        sendResponse({ message: 'Image set successfully in content.js' });
+    } else {
+        sendResponse({ message: 'Image FAILED in content.js' });
+    }
+});
+
 document.addEventListener('mousemove', (e) => {
 
     mousePosX = e.clientX;
