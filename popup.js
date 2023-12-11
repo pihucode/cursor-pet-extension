@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const fileInput = document.getElementById('fileInput');
     const flipImageCheckbox = document.getElementById('flipImageCheckbox');
-    // const uploadButton = document.getElementById('uploadButton');
+    const scaleImage = document.getElementById('scaleImage');
 
     fileInput.addEventListener('change', function () {
         const selectedFile = fileInput.files[0];
@@ -42,7 +42,18 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // uploadButton.addEventListener('click', function () {
-    //     fileInput.click();
-    // });
+    scaleImage.addEventListener('change', (event) => {
+        const scaleFactor = event.target.value;
+        chrome.storage.local.set({ "customPetImageScale": scaleFactor }, () => {});
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs.length > 0) {
+                chrome.tabs.sendMessage(tabs[0].id, { scaleFactor }, (response) => {
+                    console.log("scale: " + scaleFactor);
+                    console.log(response);
+                });
+            } else {
+                console.error("No active tab found.");
+            }
+        });
+    });
 });
