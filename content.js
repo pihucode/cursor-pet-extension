@@ -1,17 +1,18 @@
 const cursorPetImage = new Image();
+let imgScaleX = -1;
 cursorPetImage.src = chrome.runtime.getURL('chibi_paimon_cautious.png');
 cursorPetImage.style.all = 'initial'; // remove all styles
 cursorPetImage.style.maxWidth = '100px';
 cursorPetImage.style.position = 'fixed';
 cursorPetImage.style.pointerEvents = 'none';
 cursorPetImage.style.zIndex = 9999;
-cursorPetImage.style.transform = 'scaleX(-1)';
+cursorPetImage.style.transform = `scaleX(${imgScaleX})`;
 cursorPetImage.style.transition = 'opacity 2.5s ease-in-out';
 
 const PAGE_CENTER_X = window.innerWidth / 2;
 const PAGE_CENTER_Y = window.innerHeight / 2;
 
-const PADDING = 50;
+const PADDING = -50;
 
 const MOUSE_IDLE_TIME = 8000; // 8 seconds of idle time before starting circular motion
 const CIRCLING_TIME = MOUSE_IDLE_TIME + 6000; // 5 seconds of idle time before fading away
@@ -46,8 +47,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.imageDataUrl) {
         cursorPetImage.src = request.imageDataUrl;
         sendResponse({ message: 'Image set successfully in content.js' });
+    } else if (request.orientation) {
+        imgScaleX *= -1;
+        cursorPetImage.style.transform = `scaleX(${imgScaleX})`;
+        sendResponse({ message: 'Orientation set successfully in content.js' });
     } else {
-        sendResponse({ message: 'Image FAILED in content.js' });
+        sendResponse({ message: 'Message FAILED in content.js' });
     }
 });
 
@@ -88,9 +93,9 @@ document.addEventListener('mousemove', (e) => {
 function handleImageOrientation() {
     const imgLeft = parseFloat(cursorPetImage.style.left) || 0;
     let imageCenterX = imgLeft + cursorPetImage.width / 2;
-    let scale = -1;
+    let scale = imgScaleX;
     if (imageCenterX < mousePosX) {
-        scale = 1;
+        scale = imgScaleX * -1;
     }
     cursorPetImage.style.transform = `scaleX(${scale})`;
 }

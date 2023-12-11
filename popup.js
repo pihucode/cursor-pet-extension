@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const fileInput = document.getElementById('fileInput');
+    const flipImageCheckbox = document.getElementById('flipImageCheckbox');
     // const uploadButton = document.getElementById('uploadButton');
 
     fileInput.addEventListener('change', function () {
@@ -25,6 +26,20 @@ document.addEventListener('DOMContentLoaded', function () {
             };
             reader.readAsDataURL(selectedFile);
         }
+    });
+
+    flipImageCheckbox.addEventListener('change', (event) => {
+        const orientation = event.target.checked ? 'scaleX(1)' : 'scaleX(-1)';
+        chrome.storage.local.set({ "customPetImageOrientation": orientation }, () => {});
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs.length > 0) {
+                chrome.tabs.sendMessage(tabs[0].id, { orientation }, (response) => {
+                    console.log(response);
+                });
+            } else {
+                console.error("No active tab found.");
+            }
+        });
     });
 
     // uploadButton.addEventListener('click', function () {
