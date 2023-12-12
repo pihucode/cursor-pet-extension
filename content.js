@@ -1,6 +1,23 @@
 const IMG_BASE_WIDTH = 100; //px
+const PAGE_CENTER_X = window.innerWidth / 2;
+const PAGE_CENTER_Y = window.innerHeight / 2;
+const MOUSE_IDLE_TIME = 8000; // 8 seconds of idle time before starting circular motion
+const CIRCLING_TIME = MOUSE_IDLE_TIME + 6000; // 5 seconds of idle time before fading away
 
-let imgScaleX = -1;
+let imgScaleFactor = 1;
+let imgOrientationX = -1;
+
+let defaultPadding = IMG_BASE_WIDTH * imgScaleFactor / 2;
+let userSpecifiedPadding = 0;
+let totalPadding = defaultPadding + userSpecifiedPadding; //TO FIX: need to make this a state dependent on the other 2 vars
+
+let targetX = PAGE_CENTER_X; // Target X position of image
+let targetY = PAGE_CENTER_Y; // Target Y position of image
+let mousePosX = 0; // Mouse X position
+let mousePosY = 0; // Mouse Y position
+let isCircling = false;
+let circlingIdleTimeout = null;
+let fadeAwayIdleTimeout = null;
 
 const cursorPetImage = new Image();
 cursorPetImage.src = chrome.runtime.getURL('chibi_paimon_cautious.png');
@@ -9,54 +26,63 @@ cursorPetImage.style.width = `${IMG_BASE_WIDTH}px`;
 cursorPetImage.style.position = 'fixed';
 cursorPetImage.style.pointerEvents = 'none';
 cursorPetImage.style.zIndex = 99999;
-cursorPetImage.style.transform = `scaleX(${imgScaleX})`;
+cursorPetImage.style.transform = `scaleX(${imgOrientationX})`;
 cursorPetImage.style.transition = 'opacity 2.5s ease-in-out';
-
-const PAGE_CENTER_X = window.innerWidth / 2;
-const PAGE_CENTER_Y = window.innerHeight / 2;
-
-const PADDING = -50;
-
-const MOUSE_IDLE_TIME = 8000; // 8 seconds of idle time before starting circular motion
-const CIRCLING_TIME = MOUSE_IDLE_TIME + 6000; // 5 seconds of idle time before fading away
-
-let targetX = PAGE_CENTER_X; // Target X position of image
-let targetY = PAGE_CENTER_Y; // Target Y position of image
-
-let mousePosX = 0; // Mouse X position
-let mousePosY = 0; // Mouse Y position
-
-let isCircling = false;
-let circlingIdleTimeout = null;
-
-let fadeAwayIdleTimeout = null;
 
 // fetch image url from local storage
 function fetchImageUrl() {
-    chrome.storage.local.get("customPetImageUrl", function (data) {
+    chrome.storage.local.get("customPetImageUrl", (data) => {
         if (data.customPetImageUrl) {
-            console.log(data.customPetImageUrl);
             cursorPetImage.src = data.customPetImageUrl;
-            console.log('image url set successfully in content.js');
         } else {
             cursorPetImage.src = chrome.runtime.getURL('chibi_paimon_cautious.png');
-            console.log('INVALID data.customPetImageUrl');
+            console.error('Invalid customPetImageUrl');
         }
     });
 }
 fetchImageUrl();
+
+function fetchUserPreferences() {
+    chrome.storage.local.get("customPetImageOrientation", (data) => {
+        if (data.customPetImageOrientation) {
+            imgOrientationX = data.customPetImageOrientation;
+            cursorPetImage.style.transform = `scaleX(${imgOrientationX * imgScaleFactor})`;
+        }
+    });
+    chrome.storage.local.get("customPetImageScale", (data) => {
+        if (data.customPetImageScale) {
+            cursorPetImage.style.width = `${IMG_BASE_WIDTH * data.customPetImageScale}px`;
+            imgScaleFactor = data.customPetImageScale;
+            defaultPadding = IMG_BASE_WIDTH * imgScaleFactor / 2;
+            totalPadding = defaultPadding + userSpecifiedPadding; //TO FIX: make stateful here
+        }
+    });
+    chrome.storage.local.get("customPetImagePadding", (data) => {
+        if (data.userPreferences) {
+            userSpecifiedPadding = parseInt(data.customPetImagePadding);
+            totalPadding = defaultPadding + userSpecifiedPadding; //TO FIX: make stateful here
+        }
+    });
+}
+fetchUserPreferences();
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.imageDataUrl) {
         cursorPetImage.src = request.imageDataUrl;
         sendResponse({ message: 'Image set successfully in content.js' });
     } else if (request.orientation) {
-        imgScaleX *= -1;
-        cursorPetImage.style.transform = `scaleX(${imgScaleX * imgScale})`;
+        imgOrientationX *= -1;
+        cursorPetImage.style.transform = `scaleX(${imgOrientationX * imgScaleFactor})`;
         sendResponse({ message: 'Orientation set successfully in content.js' });
     } else if (request.scaleFactor) {
         cursorPetImage.style.width = `${IMG_BASE_WIDTH * request.scaleFactor}px`;
+        defaultPadding = IMG_BASE_WIDTH * request.scaleFactor / 2;
+        totalPadding = defaultPadding + userSpecifiedPadding; //TO FIX: make stateful here
         sendResponse({ message: 'Scale set successfully in content.js' });
+    } else if (request.padValue) {
+        userSpecifiedPadding = request.padValue;
+        totalPadding = defaultPadding + userSpecifiedPadding; //TO FIX: make stateful here
+        sendResponse({ message: 'Padding set successfully in content.js' });
     } else {
         sendResponse({ message: 'Message FAILED in content.js' });
     }
@@ -67,8 +93,8 @@ document.addEventListener('mousemove', (e) => {
     mousePosX = e.clientX;
     mousePosY = e.clientY;
 
-    targetX = mousePosX - cursorPetImage.width / 2 + PADDING;
-    targetY = mousePosY - cursorPetImage.height / 2 - PADDING;
+    targetX = mousePosX - cursorPetImage.width / 2 + totalPadding;
+    targetY = mousePosY - cursorPetImage.height / 2 - totalPadding;
 
     handleImageOrientation(); // flips the image horizontally depending on mouse position
 
@@ -99,9 +125,9 @@ document.addEventListener('mousemove', (e) => {
 function handleImageOrientation() {
     const imgLeft = parseFloat(cursorPetImage.style.left) || 0;
     let imageCenterX = imgLeft + cursorPetImage.width / 2;
-    let scale = imgScaleX;
+    let scale = imgOrientationX;
     if (imageCenterX < mousePosX) {
-        scale = imgScaleX * -1;
+        scale = imgOrientationX * -1;
     }
     cursorPetImage.style.transform = `scaleX(${scale})`;
 }
